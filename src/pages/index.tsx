@@ -2,10 +2,23 @@ import { type NextPage } from "next";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
+import { useState } from "react";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
+  const [simpleLink, setSimpleLink] = useState('')
+  const [allLinks,setLinks]=useState<any>()
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const postLink = api.links.getLinks.useQuery();
+  const { mutate, error, isLoading } = api.links.create.useMutation()
+  const handleLinks = () => {
+    mutate({ text: simpleLink })
+    setSimpleLink('')
+    setLinks(postLink.data)
+
+  }
+  console.log(postLink, 'postLink')
+
 
   return (
     <>
@@ -19,6 +32,10 @@ const Home: NextPage = () => {
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
           </h1>
+          <input type="text" value={simpleLink} onChange={(e) => setSimpleLink(e.target.value)} />
+          <button onClick={handleLinks}>
+            {isLoading ? "loading..." : "send"}
+          </button>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
             <Link
               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
@@ -45,6 +62,8 @@ const Home: NextPage = () => {
           </div>
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
+              {allLinks}
+              {/* {postLink.data?.map(i => i)} */}
               {hello.data ? hello.data.greeting : "Loading tRPC query..."}
             </p>
             <AuthShowcase />
